@@ -1,0 +1,22 @@
+{
+  "name": "knt-react",
+  "version": "1.0.0",
+  "description": "React javaScript functions",
+  "main": "index.js",
+  "scripts": {
+    "test": "kaynetpc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaynetpc/knt.git"
+  },
+  "keywords": [
+    "knt-react"
+  ],
+  "author": "Akinwumi Kayode Emmanuel (kayodeeman01@gmail.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kaynetpc/knt/issues"
+  },
+  "homepage": "https://github.com/kaynetpc/knt#readme"
+}
