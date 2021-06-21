@@ -322,6 +322,15 @@ export const KNT = {
         })
         return res;
     },
+    getObjectValueByKey: function(obj = {}, objKey){
+      let val = "";
+      for (const key in obj) {
+        if(key.toString().toLowerCase() === objKey.toLowerCase()){
+          val = obj[key]
+        }
+      }
+      return val;
+    },
     filterByValue: function (data = [], keys = { key: '', value: '' }) {
       let res = [];
 
@@ -335,15 +344,32 @@ export const KNT = {
 
       return res;
     },
-    filterByValueGetDistinct: function (
-      data = [],
-      keys = { key: '', value: '' }
-    ) {
+    filterByMultipleValues: function(data = [], keys =[{ key: '', value: '' }]){
+      let res = [];
+      console.log(keys)
+      //loop each data
+      data.forEach(el => {
+        //loop keys
+        keys.forEach(k => {
+          // console.log(k)
+          let newKeys = KNT.array.getValuesArrayByKey([k], "key")
+          console.log(newKeys)
+          //assign each key values
+          // let val1 = el[k.key].toString(), val2 = k.value.toString();
+          // compare values
+          // if(KNT.string.equalsIgnoreCase(val1, val2)){
+          //   res.push(el)
+          // }
+        });
+      });
+      return res;
+    },
+    filterByValueGetDistinct: function ( data = [], keys = { key: '', value: '' } ) {
       let res = [];
 
       data.forEach((el) => {
         if (KNT.string.equalsIgnoreCase(el[keys.key], keys.value)) {
-          if (!res.length > 0) res.push(el);
+          if (!res.length > 0) res.push(el); //need to be review
         }
       });
 

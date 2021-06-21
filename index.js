@@ -1,3 +1,9 @@
-exports.printer = function(param) {
-    console.log(param+"Result");
+import {KNT} from './utils/js/knt.js'
+
+
+
+
+exports.exports = function() {
+    return KNT;
 }
+
