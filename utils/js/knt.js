@@ -313,6 +313,22 @@ export const KNT = {
         arr.forEach(el => {
             for (const key in el) {
                 if (key ===  str) {
+                    res.push(el[key]);               
+                }
+            }
+        })
+        return res;
+    },
+    getDistinctValuesArrayByKey: function(data = [], keyVal){
+        let res = [];
+        let str = keyVal.toString();          
+        var arr = data;
+        // let type = typeof value;
+        // if(type === "number"){
+        // }
+        arr.forEach(el => {
+            for (const key in el) {
+                if (key ===  str) {
                     let re = el[key].toString();
                       if(!KNT.array.include(re, res)){
                           res.push(re);
@@ -664,28 +680,30 @@ export const KNT = {
         return temp;
     },
     extractByKeys: function (data = [], keys = []) {
+      if (data === []) {
+          console.error("Data to extract from cannot be empty");
+      }
+
       let list = [];
+      data.forEach(element => {
+          let temp = {};
+          for (const key in element) {
+              let masterKey = false;
+              keys.forEach(item => {
+                  if (KNT.string.equalsIgnoreCase(item, key)) {
+                      return masterKey = true;
+                  }
+              });
 
-      data.forEach((el) => {
-        let temp = {};
-        for (const key in el) {
-          let masterKey = false;
-          keys.forEach((item) => {
-            if (KNT.string.equalsIgnoreCase(item, key)) {
-              return (masterKey = true);
-            }
-          });
-
-          if (masterKey) {
-            temp[key] = data[key];
+              if (masterKey) {
+                  temp[key] = element[key];
+              }
           }
-        }
-
-        list.push(temp);
+          list.push(temp);
       });
 
       return list;
-    },
+  },
     // arr: function(mainArray = [], subArray = []){
     //     let arr = [];
     //     subArray.forEach(el => {
@@ -751,7 +769,13 @@ export const KNT = {
     toLowerCase: function (string = '') {
       return string.toLowerCase();
     },
-    equalsIgnoreCase: function (string1 = '', string2 = '') {
+    /**
+     * 
+     * @param {param} string1 
+     * @param {param} string2 
+     * @returns  boolean
+     */
+    equalsIgnoreCase: function (string1 = "", string2 = "") {
       string1 = string1.toLowerCase();
       string2 = string2.toLowerCase();
       if (string1 === string2) {

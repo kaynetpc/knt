@@ -1,9 +1,9 @@
-import {KNT} from './utils/js/knt.js'
+import {KNT} from './utils/js/knt.js';
+import {KNTReact} from './utils/js/KntReact.js';
+
+exports.KNT  = KNT;
+exports.KNTReact = KNTReact;
 
 
 
-
-exports.exports = function() {
-    return KNT;
-}
 
