@@ -41,6 +41,19 @@ export const handleUrl = (url) => {
   return `${url}`;
 };
 
+
+export const internetCheck = () => {
+  const checkStatusOnline = async () => {
+    try {
+      const online = await fetch("/1pixel.png");
+      return online.status >= 200 && online.status < 300; // either true or false
+    } catch (err) {
+      return false; // definitely offline reload
+    }
+  };
+  return checkStatusOnline();
+}
+
 // export const EmptyText = (props) => {
 //     return (
 //         <div>
@@ -294,6 +307,7 @@ export const getPercentage = () => {
  * KNT VERSION 2.0
  * start
  */
+const whitespace = /\s+/g;
 export const KNT = {
   /**Array */
   array: {
@@ -303,9 +317,9 @@ export const KNT = {
      * @param {keySearch*} keyVal 
      * @returns it's return distinct array of value sorted by key supplied []
      */
-      getValuesArrayByKey: function(data = [], keyVal){
+    getValuesArrayByKey: function(data = [], keyName){
         let res = [];
-        let str = keyVal.toString();          
+        let str = keyName.toString();          
         var arr = data;
         // let type = typeof value;
         // if(type === "number"){
@@ -315,6 +329,105 @@ export const KNT = {
                 if (key ===  str) {
                     res.push(el[key]);               
                 }
+            }
+        })
+        return res;
+    },
+    arrayToString:function(arr){
+        let res = ``;
+        arr.forEach(ar => {
+            res += ar;
+        })
+        return res;
+    },
+    getValueByKeyName: function (data = [], specifiedKey = "",  keyVal = "", valueKey = "") {
+        let res;
+        let type = typeof keyVal;
+
+        if (type === "number") {
+            keyVal = parseInt(keyVal);
+        }
+        if (type === "string") {
+            keyVal = keyVal.toString();
+        }
+
+        data.forEach(el => {
+            if (specifiedKey !== "") {
+                if (el[specifiedKey] === keyVal) {
+                    return res = el[valueKey];
+                }
+            }
+            else {
+                for (const k in el) {
+                    if (el[k] === keyVal) {
+                        return res = el[valueKey];
+                    }
+                }
+            }
+        });
+
+        return res;
+    },
+    getValueByKeysName: function (data = [], keys = [{keyName: "",  keyVal: ""}], valueKey = "") {
+        let res;
+        let type = typeof keyVal;
+
+        // if (type === "number") {
+        //     keyVal = parseInt(keyVal);
+        // }
+        // if (type === "string") {
+        //     keyVal = keyVal.toString();
+        // }
+
+        data.forEach(el => {
+          let len = 0;
+          keys.forEach(ks => {
+            if (ks.keyName !== "") {
+                if (el[ks.keyName] === ks.keyVal) {
+                  len += 1;
+                    // return res = el[valueKey];
+                }
+            }
+            else {
+                for (const k in el) {
+                    if (el[k] === ks.keyVal) {
+                      len += 1;
+                        // return res = el[valueKey];
+                    }
+                }
+            }
+          });
+          if(len == keys.length){
+              if (keys[0].keyName !== "") {
+                if (el[keys[0].keyName] === keys[0].keyVal) {
+                  len += 1;
+                    return res = el[valueKey];
+                }
+            }
+            else {
+                for (const k in el) {
+                    if (el[k] === keys[0].keyVal) {
+                      len += 1;
+                        return res = el[valueKey];
+                    }
+                }
+            }
+          }
+        });
+
+        return res;
+    },
+    getValuesArrayByKeys: function(data = [], keyVal = []){
+        let res = [];
+        var arr = data;
+        // let type = typeof value;
+        // if(type === "number"){
+        // }
+        arr.forEach(el => {
+            for (const key in el) {
+              if(KNT.array.find.getBoolean(keyVal, key)){
+                res.push(el[key])
+              }
             }
         })
         return res;
@@ -338,7 +451,29 @@ export const KNT = {
         })
         return res;
     },
-    getObjectValueByKey: function(obj = {}, objKey){
+    convertArrayToArrayOfObject: function(data, keyToLabel, valueLabel){
+      let res = [];
+      data.forEach(el => {
+        res.push({[keyToLabel? keyToLabel: 'name']:el, [valueLabel? valueLabel: "value"]: el})
+      });
+      return res;
+    },
+    // buildArrayObjectOfSpecifyKeysAsArrayObject: function name(data =[], keys = []) {
+    //   let res = [];
+    //   data.forEach(el => {
+    //     let temp = {};
+    //     keys.forEach(k => {
+    //       for(const key in el){
+    //         if(key.toLowerCase() === k.toLowerCase()){
+    //           temp[key] = el[key];
+    //         }
+    //       }
+    //     })
+    //     res.push(temp)
+    //   });
+    //   return res;
+    // },
+    getObjectValueByKey: function(obj, objKey){
       let val = "";
       for (const key in obj) {
         if(key.toString().toLowerCase() === objKey.toLowerCase()){
@@ -360,26 +495,66 @@ export const KNT = {
 
       return res;
     },
-    filterByMultipleValues: function(data = [], keys =[{ key: '', value: '' }]){
+    removeObjByKeyValue: function (data = [],  keyVal ='', value = '' ) {
       let res = [];
-      console.log(keys)
-      //loop each data
+
       data.forEach(el => {
+        for(const key in el){
+          if(!((key.toString().toLowerCase() === keyVal.toString().toLowerCase()) && (el[key].toString().toLowerCase() === value.toString().toLowerCase()))){
+              res.push(el)
+          }
+        }
+      });
+
+      return res;
+    },
+    removeByKeyValue: function (data = [], keys = { key: '', value: '' }) {
+      let res = [];
+
+      data.forEach((el) => {
+        let val1 = el[keys.key].toString(), val2 = keys.value.toString();
+        if (!KNT.string.equalsIgnoreCase(val1, val2)) {
+          // if(!this.find.getBoolean(res, el))
+          res.push(el);
+        }
+      });
+
+      return res;
+    },
+   shuffle: function(array) {
+      let i = array.length,  randomIndex;
+    
+      while (0 !== i) {
+    
+        randomIndex = Math.floor(Math.random() * i);
+        i--;
+    
+        [array[i], array[randomIndex]] = [
+          array[randomIndex], array[i]];
+      }
+    
+      return array;
+    },
+    // filterByMultipleValues: function(data = [], keys =[{ key: '', value: '' }]){
+      // let res = [];
+      // console.log(keys)
+      //loop each data
+      // data.forEach(el => {
         //loop keys
-        keys.forEach(k => {
+        // keys.forEach(k => {
           // console.log(k)
-          let newKeys = KNT.array.getValuesArrayByKey([k], "key")
-          console.log(newKeys)
+          // let newKeys = KNT.array.getValuesArrayByKey([k], "key")
+          // console.log(newKeys)
           //assign each key values
           // let val1 = el[k.key].toString(), val2 = k.value.toString();
           // compare values
           // if(KNT.string.equalsIgnoreCase(val1, val2)){
           //   res.push(el)
           // }
-        });
-      });
-      return res;
-    },
+      //   });
+      // });
+      // return res;
+    // },
     filterByValueGetDistinct: function ( data = [], keys = { key: '', value: '' } ) {
       let res = [];
 
@@ -415,7 +590,7 @@ export const KNT = {
     },
     makeNumbers: function (min, max) {
       let res = [];
-      for (var i = min; i <= max, i++; ) {
+      for (var i = min; i <= max; i++ ) {
         res.push(i);
       }
       return res;
@@ -477,6 +652,15 @@ export const KNT = {
       // return arrayOfData.indexOf(string) > 0;
       return res;
     },
+    includeKeyInObject: function (keyObj, strKey) {
+      var res = false;
+      for(const key in keyObj){
+        if(key === strKey){
+          res = true;
+        }
+      }
+      return res;
+    },
     find: {
       getBoolean: function (data = [], value) {
         let res = false;
@@ -508,6 +692,19 @@ export const KNT = {
           }          
         });
         return {status: status, data: res};
+      },
+      findByKeyValInArray: function(data = [], keyName, keyVal){
+        let res = false;
+        data.forEach(el => {
+          for(const key in el){
+            if(key === keyName){
+              if(keyVal === el[keyVal]){
+                res = true;
+              }
+            }         
+          }
+        });
+        return res;
       }
     },
     object: {
@@ -532,7 +729,7 @@ export const KNT = {
 
         let newData = data;
           newData.forEach(el => {
-            if(el[key] == prevValue){
+            if(el[key] === prevValue){
               el[key] = value;
             } 
             temp.push(el);
@@ -667,17 +864,103 @@ export const KNT = {
      * @param {any array of object} data 
      * @returns array of object with key name and values
      */
-    buildObjToNameAndValue : function(data = []){
+    buildObjToNameAndValue : function(data = [], args){
         var temp = [];
         let arr = data;
         arr.forEach(el => {
             for (const key in el) {
+              if(args){
+                temp.push(
+                    {name: key, value: el[key], ...args}
+                )                
+              } else {
                 temp.push(
                     {name: key, value: el[key]}
+                )               
+              }
+            }
+        })
+        return temp;
+    },
+    /** */
+    buildObjToSpecifyKeys : function(data = [], newKeyLabel, newValLabel, newAppendLabel, newAppendVal, obj= {}){
+
+        var temp = [];
+        let arr = data;
+        let nwAP = newAppendLabel? newAppendLabel: "other", nwAPVal = newAppendVal? newAppendVal: ""; 
+        let nwKey = newKeyLabel? newKeyLabel: "name", nwVal = newValLabel? newValLabel: "value"; 
+        arr.forEach(el => {
+            for (const key in el) {
+                temp.push(
+                    {[nwKey]: key, [nwVal]: el[key], [nwAP]: nwAPVal, ...obj}
                 )                
             }
         })
         return temp;
+    },
+    extractByKeyValue: function(data = [], keySpecify = "", value = ""){
+      let res = [];
+      data.forEach(el => {
+        for(const key in el){
+          if(KNT.string.equalsIgnoreCase(key, keySpecify)){
+            try {
+              if(KNT.string.equalsIgnoreCase(el[key], value)){
+                res.push(el);
+              }
+              } catch (error) {
+                if(el[key] === value){
+                  res.push(el);
+                }          
+              }
+          }            
+        }
+      })
+      return res;
+    },
+    extractByKeyValues: function(data = [], keySpecify = "", value = []){
+      let res = [];
+      data.forEach(el => {
+        for(const key in el){
+          if(KNT.string.equalsIgnoreCase(key, keySpecify)){
+            try {
+                if(value.includes(el[key])){
+                  res.push(el);
+                }
+              } catch (error) {
+                if(el[key] === value){
+                  res.push(el);
+                }          
+              }
+          }            
+        }
+      })
+      return res;
+    },
+    extractAndCompareByKeyValue: function(data = [], keySpecify = "", value = "", conKey1 = "", conKey2 = ""){
+      if(conKey1 < conKey2){
+        console.error("Consider Key Value two must be greater than or equal to Consider Key Value Two")
+      }
+      let res = [];
+      data.forEach(el => {
+        for(const key in el){
+          if(KNT.string.equalsIgnoreCase(key, keySpecify)){
+            try {
+              if(KNT.string.equalsIgnoreCase(el[key], value)){
+                if(parseInt(el[conKey1]) > parseInt(el[conKey2])){
+                  res.push(el);
+                }
+              }
+              } catch (error) {
+                if(el[key] === value){
+                  if(parseInt(el[conKey1]) >= parseInt(el[conKey2])){
+                    res.push(el);
+                  }
+                }          
+              }
+          }            
+        }
+      })
+      return res;
     },
     extractByKeys: function (data = [], keys = []) {
       if (data === []) {
@@ -704,6 +987,77 @@ export const KNT = {
 
       return list;
   },
+    removeByKeys: function (data = [], keys = []) {
+      if (data === []) {
+          console.error("Data to extract from cannot be empty");
+      }
+
+      let list = [];
+      data.forEach(element => {
+          let temp = {};
+          for (const key in element) {
+              let masterKey = true;
+              keys.forEach(item => {
+                  if (KNT.string.equalsIgnoreCase(item, key)) {
+                      return masterKey = false;
+                  }
+              });
+
+              if (masterKey) {
+                  temp[key] = element[key];
+              }
+          }
+          list.push(temp);
+      });
+
+      return list;
+  },
+  /**
+   * 
+   * @param {ArrayObject} arr 
+   * @returns it return an object, res as finale response,  arrayKeys of leftover and leftover value
+   */
+  extractArrayInArrayObject: function(arr){
+      let arrayKeys = [];
+      arr.forEach((el, i) => {
+          for(const k in el){
+              if(Array.isArray(el[k]) || KNT.object.isObject(el[k])){
+                  arrayKeys.push(k)
+              }
+          }
+      })
+      let res = KNT.array.removeByKeys(arr, arrayKeys);
+      let arrayValues = KNT.array.extractByKeys(arr, arrayKeys);
+      return {res: res, arrayKeys: arrayKeys, array: arrayValues};
+  },
+
+  /**
+   * 
+   * @param {array of object} data 
+   * @param {targeted key} keySort 
+   * @param {new key title} groupTitleLabel 
+   * @param {new key valueLabel} groupContentLabel 
+   * @returns array of object grouped by key value e.g [{title: "", content: []}]
+   */
+   groupArrayObjectByKey: function(data, keySort, groupTitleLabel = "", groupContentLabel = ""){
+    let res  = [];
+    KNT.array.getDistinctValuesArrayByKey(data, keySort).forEach((el, i) => {
+        let group = {};
+        if(groupTitleLabel !== "" && groupTitleLabel !== undefined && groupTitleLabel !== null){
+            group[groupTitleLabel] = el;
+        } else {
+            group["title"] = el;
+        }
+        if(groupTitleLabel !== "" && groupTitleLabel !== undefined && groupTitleLabel !== null){
+            group[groupContentLabel] = KNT.array.extractByKeyValue(data, keySort, el);
+        } else {
+            group["content"] = KNT.array.extractByKeyValue(data, keySort, el);
+        }
+        res.push(group);
+        
+    })
+    return res;
+  }
     // arr: function(mainArray = [], subArray = []){
     //     let arr = [];
     //     subArray.forEach(el => {
@@ -722,22 +1076,72 @@ export const KNT = {
     //     return res;
     // }
   },
-  validateField: {
-    checkNumber: function (supp) {
-      let res = isNaN(supp);
-      return !res;
+  object: {
+    /**
+     * 
+     * @param {single Object} obj 
+     * @param {value} value 
+     * @returns  key of value
+     */
+    getKeyByValue: function (obj, value) {
+      return Object.keys(obj).find(key => obj[key] === value);
     },
-    digitRestriction: function (value = 0, maxValue = 0, length = 0) {
-      value = parseInt(value);
-      if (value <= maxValue && value.toString().length <= length) {
-        return value;
-      } else return 0;
+    compareTwoObject: function (obj1, obj2){
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
     },
+    /**
+     * 
+     * @param {any} any 
+     * @returns true if is an object else it return false
+     */
+    isObject: function(any){
+      return any instanceof Object;
+    }
   },
+    validateField: {
+      /**
+       * 
+       * @param {[{}]} field 
+       * @returns false if and only key value equal to "" or null or undefine, else it return true
+       */
+      validate: function (field = [{}]){
+        // let st = [];
+          let res = true;
+              field.forEach(el => {
+                  for(const key in el){
+                      if(el[key] === "" || el[key] === null || el[key] === undefined){
+                        // st.push(key)
+                        // if()
+                          return res = false;
+                      }
+                  }
+              }); 
+          return res;
+      },
+      checkNumber: function (param) {
+        let res = isNaN(param);
+        return !res;
+      },
+      digitRestriction: function (value, maxValue, length = 0) {
+        value = parseInt(value);
+        if(typeof(value) !== "number"){
+            return 0;
+        }
+        if (value <= maxValue && value.toString().length <= length) {
+          return value;
+        } else return 0;
+      },
+      extractNum: function(value){
+        // value = isNaN(value)? 0: value
+        // let num = parseFloat(value.replace(/^D|,+/g, ''));
+        var num = value.replace(/[^0-9]/g, "");
+        return num;
+      }
+    },
 
   /**Strings */
   string: {
-    includes: function(mainString = "", searchStr){
+    includes: function(mainString = "", searchStr = ""){
 
       // var store = [];
       // var str = ""
@@ -768,6 +1172,15 @@ export const KNT = {
     },
     toLowerCase: function (string = '') {
       return string.toLowerCase();
+    },
+    stringCommaToArray: function (string, separator) {
+      var str = string.toString();
+      return str.split(`${separator? separator: ","}`);
+    },
+    arrayToString: function (arr = []) {
+      let res = '';
+      arr.forEach(ar => res += ar);
+      return res;
     },
     /**
      * 
@@ -834,14 +1247,16 @@ export const KNT = {
     },
     /**
      * it will return supplied string with space or specified character before each capital letter in string supplied
-     * @param {camelCase} string
-     * @param {*} toSet
+     * @param {*} string 
+     * @param {*} toSet 
+     * @param {*} caseSentence 
+     * @returns 
      */
     filterCamelCase: function (string, toSet, caseSentence) {
       var str = string.toString();
       var stringArray = str.split('');
       var res = '';
-      let fixPoint = toSet ? toSet : ' ';
+      let fixPoint = (toSet && toSet !== null)? toSet : ' ';
 
       for (var i in stringArray) {
         if (stringArray[i].toUpperCase() === stringArray[i]) {
@@ -866,14 +1281,14 @@ export const KNT = {
       var result = '';
       var characters =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      var charactersLength = characters.length;
-      for (var i = 0; i < length; i++) {
+      let charactersLength = characters.length;
+      for (let i = 0; i < length; i++) {
         result += characters.charAt(
           Math.floor(Math.random() * charactersLength)
         );
       }
       if (KNT.array.include(result, previous)) {
-        for (var i = 0; i < length; i++) {
+        for (let j = 0; j < length; j++) {
           result += characters.charAt(
             Math.floor(Math.random() * charactersLength)
           );
@@ -882,6 +1297,14 @@ export const KNT = {
         return result;
       }
     },
+    replaceWord: function(str, word, newWord){
+        let newStr = str.replace(word, newWord);
+        return newStr;
+    },
+    removeWhitespace: function(str){
+        let newStr = str.replace(/\s+/g, '');
+        return newStr;
+    }
   },
   /**Date And Moments */
   date: {
@@ -896,6 +1319,23 @@ export const KNT = {
       var d1 = new Date(expireDate);
       var d2 = new Date();
       if(d1 >= d2){
+        result = true;
+      }
+      return result;
+    },
+    /**
+     * 
+     * @param {smallerDate} dateOne 
+     * @param {biggerDate} dateTwo 
+     * @returns if current date is within date one and date two it return true
+     * dateTwo must be bigger than dateOne
+     */
+    isWithin: function(dateOne, dateTwo){
+      let result = false;
+      var d1 = new Date(dateOne);
+      var d2 = new Date(dateTwo);
+      let date = new Date();
+      if(d1 <= date & date <= d2){
         result = true;
       }
       return result;
@@ -941,6 +1381,10 @@ export const KNT = {
     },
     getTodayDate: {
       current: new Date(),
+      /**
+       * 
+       * @returns dd/MM/yyyy
+       */
       full: function () {
         var day = new Date().getUTCDate();
         var month = new Date().getMonth() + 1;
@@ -999,7 +1443,7 @@ export const KNT = {
      *
      * @param {mainDate} date
      * @param {} divider
-     * @returns "yyyy/MM/dd"
+     * @returns "yyyy/MM/dd" or yyyy-MM-dd
      */
     formatDate: function (date, divider) {
       var d = new Date(date),
@@ -1033,6 +1477,52 @@ export const KNT = {
       console.log(newDate, month, day);
       return newDate;
     },
+    /**
+     * Returns Day e.g Monday
+     */
+    getDay:{
+        short: function (dateStr){
+            let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            let date = new Date(dateStr);
+            let day  = date.getDay()
+            return days[day];
+        },
+        long: function (dateStr){
+            let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            let date = new Date(dateStr);
+            let day  = date.getDay()
+            return days[day];
+        },
+    },
+  },
+  /**Files */
+  exportCsv: function(data = [], heading = [], output = ''){
+    var csvRow = [];
+    var content = [heading];
+    if (heading === undefined || heading === [] || heading === null) {
+      content = [getArrayObjectKeys(data)];
+    }
+  
+    for (let item = 0; item < data.length; item++) {
+      let builder = [];
+      getArrayObjectKeys(data).forEach((element) => {
+        builder.push(data[item][element]);
+      });
+      content.push(builder);
+    }
+  
+    for (let i = 0; i < content.length; i++) {
+      csvRow.push(content[i].join(','));
+    }
+    var csvString = csvRow.join('%0A');
+  
+    var a = document.createElement('a');
+    a.href = 'data:attachment/csv,' + csvString;
+    a.target = '_Blank';
+    let outputName = output === '' || output === undefined ? 'document' : output;
+    a.download = outputName.concat('.csv');
+    document.body.appendChild(a);
+    a.click();
   },
   /**
    * supply url to convert
@@ -1067,7 +1557,36 @@ export const KNT = {
       }
     })
     return res;
-  },
+  },  
+    oLevelGradeToWeight: function (grade){
+      switch (grade.toLowerCase()) {
+          case "a1": return 8;
+          case "b2": return 7;
+          case "b3": return 6;
+          case "c4": return 5;
+          case "c5": return 4;
+          case "c6": return 3;
+          case "d7": return 2;
+          case "e8": return 1;
+          case "f9": return 0;
+          default: return 0;
+      }
+    },
+    oLevelWeightToGrade: function(weight){
+      switch (weight.intValue()) {
+          case 8: return "a1";
+          case 7: return "b2";
+          case 6: return "b3";
+          case 5: return "c4";
+          case 4: return "c5";
+          case 3: return "c6";
+          case 2: return "d7";
+          case 1: return "e8";
+          case 0: return "f9";
+          default: return "";
+      }
+    },
+
   grade: function (gradeScoreOverHundred) {
     if (gradeScoreOverHundred >= 95 && gradeScoreOverHundred <= 100) {
       return 'A+';
@@ -1218,9 +1737,54 @@ export const KNT = {
     roundUpNum: function(num){
       var n = num;
       return Math.round((n + Number.EPSILON) * 100 ) / 100;
-    }
+    },
+  },
+  /**Table */
+  html: {
+    /**
+     * @param {HTML_TAG_NAME} tagName e.g td supply valid html tag only
+     * @param {String} className checked if content of td is numeric then append className
+     * @returns void
+     */
+    appendClassNameNUM_Content: function(tagName = "", className = "") {
+      let el = document.getElementsByTagName(tagName);
+      for(let i = 0; i < el.length; i++){
+        if(KNT.validateField.checkNumber(el[i].innerHTML)){
+          let cName = KNT.string.replaceWord(el[i].className, whitespace, ",")
+          let classArr = KNT.string.stringCommaToArray(cName, ",")
+          if(!classArr.includes(className)){
+            el[i].className +=  " " + className;
+          }
+        }
+      }
+    },
+    appendClassNameToTagByTagName: function(attrName, className){
+      let el = document.getElementsByName(attrName);
+      for(let i = 0; i < el.length; i++){
+        let cName = KNT.string.replaceWord(el[i].className, whitespace, ",")
+        let classArr = KNT.string.stringCommaToArray(cName, ",")
+        if(!classArr.includes(className)){
+          el[i].className +=  " " + className;
+        }
+      }      
+    },
+    // appendClassNameToTagByTag: function(attrName, className){
+    //   let el = document.getElementsByTa(attrName);
+    //   for(let i = 0; i < el.length; i++){
+    //     let cName = KNT.string.replaceWord(el[i].className, whitespace, ",")
+    //     let classArr = KNT.string.stringCommaToArray(cName, ",")
+    //     if(!classArr.includes(className)){
+    //       el[i].className +=  " " + className;
+    //     }
+    //   }      
+    // } 
   }
 };
+
+
+
+
+
 
 /**
  * KNT VERSION 2.0
