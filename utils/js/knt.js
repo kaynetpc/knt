@@ -512,9 +512,8 @@ export const KNT = {
       let res = [];
 
       data.forEach((el) => {
-        let val1 = el[keys.key].toString(), val2 = keys.value.toString();
-        if (!KNT.string.equalsIgnoreCase(val1, val2)) {
-          // if(!this.find.getBoolean(res, el))
+        const val1 = el[keys.key], val2 = keys.value;
+        if (val1 !== val2) {
           res.push(el);
         }
       });
@@ -605,6 +604,22 @@ export const KNT = {
       });
       return res;
     },
+    searchAny: function (array = [], string) {
+      let search = string.toLowerCase();
+      let res = [];
+      array.forEach((el, i) => {
+        for(const key in el){
+          const k = key.toLowerCase();
+          const v = el[key]
+          if(v.includes(search) || k.includes(search)){
+            if(!res.includes(el)){
+              res.push(el);
+            }
+          }
+        }
+      });
+      return res;
+    },
     marge: function (data = []) {
       // let data = [arr1, arr2]
       var res = [];
@@ -642,7 +657,7 @@ export const KNT = {
      * @param {string to search} string
      * @param {array of data} arrayOfData
      */
-    include: function (string = '', arrayOfData) {
+    include: function (string = '', arrayOfData = []) {
       var res = false;
       arrayOfData.forEach(data => {
         if(KNT.string.equalsIgnoreCase(data.toString(), string)){
@@ -651,6 +666,14 @@ export const KNT = {
       })
       // return arrayOfData.indexOf(string) > 0;
       return res;
+    },
+    equalsInclude: function (arr = [], anySearch) {
+      for(let i = 0; i < arr.length; i++){
+        if(arr[i] === anySearch) {
+          return true;
+        }
+      }
+      return false;
     },
     includeKeyInObject: function (keyObj, strKey) {
       var res = false;
@@ -764,6 +787,12 @@ export const KNT = {
     remove: function (string = "", data = []) {
       return data.filter((e) => e !== string);
     },
+    /**
+     * 
+     * @param {Array} toRemove 
+     * @param {Array<object>} data 
+     * @returns return data excluding items key found in toRemove
+     */
     removeMultiple: function (toRemove = [], data = []) {
       let res = [];
       data.forEach((el) => {
@@ -775,6 +804,9 @@ export const KNT = {
     },
     maxNumInArr: function (arr = []) {
       return Math.max(...arr);
+    },
+    minNumInArr: function (arr = []) {
+      return arr.reduce((a, b) => Math.min(a, b));
     },
     getDistinct: function (arr) {
       let temp = [];
@@ -1104,18 +1136,22 @@ export const KNT = {
        * @param {[{}]} field 
        * @returns false if and only key value equal to "" or null or undefine, else it return true
        */
-      validate: function (field = [{}]){
-        // let st = [];
-          let res = true;
-              field.forEach(el => {
+      validate: function (field = [], emptyKey, func){
+        // let fieldCheck = Array.isArray(field) && field.length > 0? field: KNT.object.isObject(field) && Object.keys(field).length > 0? [field]: err = true;
+        let res = true;
+          if(Array.isArray(field)){
+            field.forEach(el => {
                   for(const key in el){
                       if(el[key] === "" || el[key] === null || el[key] === undefined){
-                        // st.push(key)
-                        // if()
-                          return res = false;
+                        return res = false;
                       }
                   }
-              }); 
+              });            
+            } 
+            
+          if(res && func !== undefined){
+            func()
+          }
           return res;
       },
       checkNumber: function (param) {
@@ -1138,7 +1174,22 @@ export const KNT = {
         return num;
       }
     },
-
+  /**Action */
+  action: {
+    copyToClipboard: function(TextToCopy, func = () => {}, al = false){
+      var TempText = document.createElement("input");
+      TempText.value = TextToCopy;
+      document.body.appendChild(TempText);
+      TempText.select();
+      
+      document.execCommand("copy");
+      document.body.removeChild(TempText);
+      if(al) alert("Copied!");
+      if(func !== (undefined || null)){
+          func()
+      }
+    }
+  },
   /**Strings */
   string: {
     includes: function(mainString = "", searchStr = ""){
